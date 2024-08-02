@@ -287,7 +287,8 @@ picorv32 #(
 
 
 assign wbp_ready = 1'b1;
- 
+
+`ifdef __HDMI_ENABLED__
 wire svo_term_valid;
 assign svo_term_valid = (uart_valid && uart_ready) & (~uart_addr[2]) & uart_wstrb[0];
 
@@ -310,5 +311,6 @@ svo_hdmi_top u_hdmi (
 	.tmds_d_n(tmds_d_n),
 	.tmds_d_p(tmds_d_p)
 );
+`endif
 
 endmodule
