@@ -1,13 +1,17 @@
 `timescale 1ns/1ps
 
+`define __HDMI_ENABLED__
+
 module picotiny (
   input clk,
   input resetn,
 
+`ifdef  __HDMI_ENABLED__
   output       tmds_clk_n,
   output       tmds_clk_p,
   output [2:0] tmds_d_n,
   output [2:0] tmds_d_p,
+`endif
 
   output  flash_clk,
   output  flash_csb,
@@ -123,7 +127,7 @@ picorv32 #(
    .eoi()
  );
 
- PicoMem_SRAM_8KB u_PicoMem_SRAM_8KB_7 (
+ PicoMem_SRAM_32KB u_PicoMem_SRAM_32KB_7 (
   .resetn(sys_resetn),
   .clk(clk_p),
   .mem_s_valid(sram_valid),
