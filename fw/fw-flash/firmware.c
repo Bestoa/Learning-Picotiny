@@ -277,7 +277,8 @@ void cmd_benchmark_all()
 volatile int i;
 // --------------------------------------------------------
 
-#define CLK_FREQ        25175000
+//#define CLK_FREQ        25175000
+#define CLK_FREQ        50000000
 #define UART_BAUD       115200
 
 void main()

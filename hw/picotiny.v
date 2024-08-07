@@ -1,6 +1,6 @@
 `timescale 1ns/1ps
 
-`define __HDMI_ENABLED__
+//`define __HDMI_ENABLED__
 
 module picotiny (
   input clk,
@@ -91,6 +91,7 @@ wire clk_p;
 wire clk_p5;
 wire pll_lock;
 
+`ifdef __HDMI_ENABLED__
 Gowin_rPLL u_pll (
   .clkin(clk),
   .clkout(clk_p5),
@@ -103,6 +104,14 @@ Gowin_CLKDIV u_div_5 (
     .hclkin(clk_p5),
     .resetn(pll_lock)
 );
+
+`else
+Gowin_rPLL_50MHz u_pll (
+  .clkin(clk),
+  .clkout(clk_p),
+  .lock(pll_lock)
+);
+`endif
 
 Reset_Sync u_Reset_Sync (
   .resetn(sys_resetn),

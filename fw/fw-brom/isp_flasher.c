@@ -119,7 +119,9 @@ typedef struct {
 
 // 0.8 us per loop in 24MHz
 #define FW_WAIT_MAXCNT  ((int)(400000 / 0.8))
-#define CLK_FREQ        25175000
+// if enable HDMI, CLK_FREQ should be 25.175MHz
+//#define CLK_FREQ        25175000
+#define CLK_FREQ        50000000
 #define UART_BAUD       115200
 
 int main()
@@ -140,6 +142,12 @@ int main()
 
     if (waitcnt == FW_WAIT_MAXCNT) {
         void (*flash_vec)(void) = (void (*)(void))(0x00000000);
+        uart_putchar('\r');
+        uart_putchar('\n');
+        uart_putchar('B');
+        uart_putchar('F');
+        uart_putchar('F');
+        uart_putchar('\n');
         flash_vec();
     }
 
