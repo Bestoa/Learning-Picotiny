@@ -58,7 +58,7 @@ module picotiny (
  wire [31:0] wbp_wdata;
  wire [3:0] wbp_wstrb;
  wire [31:0] wbp_rdata;
- 
+
  wire spimemcfg_valid;
  wire spimemcfg_ready;
  wire [31:0] spimemcfg_addr;
@@ -105,6 +105,9 @@ Gowin_CLKDIV u_div_5 (
     .resetn(pll_lock)
 );
 
+`elsif __NO_GOWIN_IDE__
+assign clk_p = clk;
+assign pll_lock = 1;
 `else
 Gowin_rPLL_50MHz u_pll (
   .clkin(clk),
@@ -146,7 +149,7 @@ picorv32 #(
   .mem_s_wstrb(sram_wstrb),
   .mem_s_rdata(sram_rdata)
  );
- 
+
  // S0 0x0000_0000 -> SPI Flash XIP
  // S1 0x4000_0000 -> SRAM
  // S2 0x8000_0000 -> PicoPeriph
