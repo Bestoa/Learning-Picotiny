@@ -27,8 +27,16 @@ typedef struct {
     };
 } PICOQSPI;
 
+typedef struct {
+    volatile uint32_t cmd;
+    volatile uint32_t pixel;
+    volatile uint32_t reset;
+} PICOLCD;
+
 #define QSPI0 ((PICOQSPI*)0x81000000)
 #define GPIO0 ((PICOGPIO*)0x82000000)
+
+#define LCD   ((PICOLCD*)0x84000000)
 
 #define FLASHIO_ENTRY_ADDR ((void *)0x80000054)
 
@@ -314,26 +322,65 @@ void main()
 
             case '1':
                 GPIO0->OUT ^= 0x00000001;
+                int i = 0;
+                for (i = 0; i < 135*240; i++)
+                {
+                    LCD->pixel = 0xf800;
+                }
                 break;
 
             case '2':
                 GPIO0->OUT ^= 0x00000002;
+                for (i = 0; i < 135*240; i++)
+                {
+                    LCD->pixel = 0x1f;
+                }
                 break;
 
             case '3':
                 GPIO0->OUT ^= 0x00000004;
+                print_hex(LCD->pixel, 8);
+                putchar('\n');
+                LCD->cmd = 0x2a;
+                LCD->cmd = 0x100;
+                LCD->cmd = 0x128;
+                LCD->cmd = 0x101;
+                LCD->cmd = 0x117;
+                LCD->cmd = 0x2b;
+                LCD->cmd = 0x100;
+                LCD->cmd = 0x135;
+                LCD->cmd = 0x100;
+                LCD->cmd = 0x1bb;
+                LCD->cmd = 0x2c;
                 break;
 
             case '4':
                 GPIO0->OUT ^= 0x00000008;
+                LCD->reset = 0xffffffff;
                 break;
 
             case '5':
                 GPIO0->OUT ^= 0x00000010;
+                LCD->cmd = 0x2a;
+                LCD->cmd = 0x100;
+                LCD->cmd = 0x138;
+                LCD->cmd = 0x101;
+                LCD->cmd = 0x107;
+                LCD->cmd = 0x2b;
+                LCD->cmd = 0x100;
+                LCD->cmd = 0x145;
+                LCD->cmd = 0x100;
+                LCD->cmd = 0x19b;
+                LCD->cmd = 0x2c;
+                for (i = 0; i < 135*240; i++)
+                {
+                    LCD->pixel = 0x8888;
+                }
                 break;
 
             case '6':
                 GPIO0->OUT ^= 0x00000020;
+                LCD->reset = 0xffff;
                 break;
 
             default:

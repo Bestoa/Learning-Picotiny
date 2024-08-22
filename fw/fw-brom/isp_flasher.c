@@ -121,13 +121,13 @@ typedef struct {
 #define FW_WAIT_MAXCNT  ((int)(400000 / 0.8))
 // if enable HDMI, CLK_FREQ should be 25.175MHz
 //#define CLK_FREQ        25175000
-// if we don't have gowin ide, use the default 27MHz xtal
-#define CLK_FREQ        27000000
-//#define CLK_FREQ        50000000
+// if we don't use pll, CLK_FREQ should be 27MHz
+//#define CLK_FREQ        27000000
+#define CLK_FREQ        51000000
 #define UART_BAUD       115200
 
 
-#define BROM_VERSION "0.0.2"
+#define BROM_VERSION "0.0.3.51"
 
 void print(const char *p)
 {

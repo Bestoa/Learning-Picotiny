@@ -1,22 +1,19 @@
 `timescale 1ns/1ps
 
-//`define __HDMI_ENABLED__
-
 module picotiny (
   input clk,
   input resetn,
-
-`ifdef  __HDMI_ENABLED__
-  output       tmds_clk_n,
-  output       tmds_clk_p,
-  output [2:0] tmds_d_n,
-  output [2:0] tmds_d_p,
-`endif
 
   output  flash_clk,
   output  flash_csb,
   inout   flash_mosi,
   inout   flash_miso,
+
+  output lcd_resetn,
+  output lcd_clk,
+  output lcd_cs,
+  output lcd_rs,
+  output lcd_data,
 
   input  ser_rx,
   output ser_tx,
@@ -51,6 +48,20 @@ module picotiny (
  wire [31:0] picop_wdata;
  wire [3:0] picop_wstrb;
  wire [31:0] picop_rdata;
+
+ wire picop0_valid;
+ wire picop0_ready;
+ wire [31:0] picop0_addr;
+ wire [31:0] picop0_wdata;
+ wire [3:0] picop0_wstrb;
+ wire [31:0] picop0_rdata;
+
+ wire picop1_valid;
+ wire picop1_ready;
+ wire [31:0] picop1_addr;
+ wire [31:0] picop1_wdata;
+ wire [3:0] picop1_wstrb;
+ wire [31:0] picop1_rdata;
 
  wire wbp_valid;
  wire wbp_ready;
@@ -87,31 +98,23 @@ module picotiny (
  wire [3:0] uart_wstrb;
  wire [31:0] uart_rdata;
 
-wire clk_p;
-wire clk_p5;
+ wire lcd_valid;
+ wire lcd_ready;
+ wire [31:0] lcd_addr;
+ wire [31:0] lcd_wdata;
+ wire [3:0] lcd_wstrb;
+ wire [31:0] lcd_rdata;
+
+wire cpu_clk;
 wire pll_lock;
 
-`ifdef __HDMI_ENABLED__
-Gowin_rPLL u_pll (
-  .clkin(clk),
-  .clkout(clk_p5),
-//  .clkoutd(clk_p),
-  .lock(pll_lock)
-);
-
-Gowin_CLKDIV u_div_5 (
-    .clkout(clk_p),
-    .hclkin(clk_p5),
-    .resetn(pll_lock)
-);
-
-`elsif __NO_GOWIN_IDE__
-assign clk_p = clk;
+`ifdef __NO_PLL__
+assign cpu_clk = clk;
 assign pll_lock = 1;
 `else
-Gowin_rPLL_50MHz u_pll (
+Gowin_rPLL u_pll (
   .clkin(clk),
-  .clkout(clk_p),
+  .clkout(cpu_clk),
   .lock(pll_lock)
 );
 `endif
@@ -119,13 +122,13 @@ Gowin_rPLL_50MHz u_pll (
 Reset_Sync u_Reset_Sync (
   .resetn(sys_resetn),
   .ext_reset(resetn & pll_lock),
-  .clk(clk_p)
+  .clk(cpu_clk)
 );
 
 picorv32 #(
    .PROGADDR_RESET(32'h8000_0000)
 ) u_picorv32 (
-   .clk(clk_p),
+   .clk(cpu_clk),
    .resetn(sys_resetn),
    .trap(),
    .mem_valid(mem_valid),
@@ -141,7 +144,7 @@ picorv32 #(
 
  PicoMem_SRAM_32KB u_PicoMem_SRAM_32KB_7 (
   .resetn(sys_resetn),
-  .clk(clk_p),
+  .clk(cpu_clk),
   .mem_s_valid(sram_valid),
   .mem_s_ready(sram_ready),
   .mem_s_addr(sram_addr),
@@ -191,19 +194,15 @@ picorv32 #(
   .picos3_rdata(wbp_rdata)
  );
 
-// S0 0x8000_0000 -> BOOTROM
-// S1 0x8100_0000 -> SPI Flash
-// S2 0x8200_0000 -> GPIO
-// S3 0x8300_0000 -> UART
-  PicoMem_Mux_1_4 #(
+  PicoMem_Mux_1_4_slow #(
     .PICOS0_ADDR_BASE(32'h8000_0000),
-    .PICOS0_ADDR_MASK(32'h0F00_0000),
-    .PICOS1_ADDR_BASE(32'h8100_0000),
-    .PICOS1_ADDR_MASK(32'h0F00_0000),
-    .PICOS2_ADDR_BASE(32'h8200_0000),
-    .PICOS2_ADDR_MASK(32'h0F00_0000),
-    .PICOS3_ADDR_BASE(32'h8300_0000),
-    .PICOS3_ADDR_MASK(32'h0F00_0000)
+    .PICOS0_ADDR_END (32'h83FF_FFFF),
+    .PICOS1_ADDR_BASE(32'h8400_0000),
+    .PICOS1_ADDR_END (32'h87FF_FFFF),
+    .PICOS2_ADDR_BASE(32'h8800_0000),
+    .PICOS2_ADDR_END (32'h8BFF_FFFF),
+    .PICOS3_ADDR_BASE(32'h8C00_0000),
+    .PICOS3_ADDR_END (32'h8FFF_FFFF)
   ) u_PicoMem_Mux_1_4_picop (
   .picom_valid(picop_valid),
   .picom_ready(picop_ready),
@@ -211,6 +210,42 @@ picorv32 #(
   .picom_wdata(picop_wdata),
   .picom_wstrb(picop_wstrb),
   .picom_rdata(picop_rdata),
+
+  .picos0_valid(picop0_valid),
+  .picos0_ready(picop0_ready),
+  .picos0_addr(picop0_addr),
+  .picos0_wdata(picop0_wdata),
+  .picos0_wstrb(picop0_wstrb),
+  .picos0_rdata(picop0_rdata),
+
+  .picos1_valid(picop1_valid),
+  .picos1_ready(picop1_ready),
+  .picos1_addr(picop1_addr),
+  .picos1_wdata(picop1_wdata),
+  .picos1_wstrb(picop1_wstrb),
+  .picos1_rdata(picop1_rdata)
+  );
+
+// S0 0x8000_0000 -> BOOTROM
+// S1 0x8100_0000 -> SPI Flash
+// S2 0x8200_0000 -> GPIO
+// S3 0x8300_0000 -> UART
+  PicoMem_Mux_1_4_slow #(
+    .PICOS0_ADDR_BASE(32'h8000_0000),
+    .PICOS0_ADDR_END (32'h80FF_FFFF),
+    .PICOS1_ADDR_BASE(32'h8100_0000),
+    .PICOS1_ADDR_END (32'h81FF_FFFF),
+    .PICOS2_ADDR_BASE(32'h8200_0000),
+    .PICOS2_ADDR_END (32'h82FF_FFFF),
+    .PICOS3_ADDR_BASE(32'h8300_0000),
+    .PICOS3_ADDR_END (32'h83FF_FFFF)
+  ) u_PicoMem_Mux_1_4_picop0 (
+  .picom_valid(picop0_valid),
+  .picom_ready(picop0_ready),
+  .picom_addr(picop0_addr),
+  .picom_wdata(picop0_wdata),
+  .picom_wstrb(picop0_wstrb),
+  .picom_rdata(picop0_rdata),
 
   .picos0_valid(brom_valid),
   .picos0_ready(brom_ready),
@@ -241,8 +276,34 @@ picorv32 #(
   .picos3_rdata(uart_rdata)
  );
 
+// S0 0x8400_0000 -> LCD 
+  PicoMem_Mux_1_4_slow #(
+    .PICOS0_ADDR_BASE(32'h8400_0000),
+    .PICOS0_ADDR_END (32'h84FF_FFFF),
+    .PICOS1_ADDR_BASE(32'h8500_0000),
+    .PICOS1_ADDR_END (32'h85FF_FFFF),
+    .PICOS2_ADDR_BASE(32'h8600_0000),
+    .PICOS2_ADDR_END (32'h86FF_FFFF),
+    .PICOS3_ADDR_BASE(32'h8700_0000),
+    .PICOS3_ADDR_END (32'h87FF_FFFF)
+  ) u_PicoMem_Mux_1_4_picop1 (
+  .picom_valid(picop1_valid),
+  .picom_ready(picop1_ready),
+  .picom_addr(picop1_addr),
+  .picom_wdata(picop1_wdata),
+  .picom_wstrb(picop1_wstrb),
+  .picom_rdata(picop1_rdata),
+
+  .picos0_valid(lcd_valid),
+  .picos0_ready(lcd_ready),
+  .picos0_addr(lcd_addr),
+  .picos0_wdata(lcd_wdata),
+  .picos0_wstrb(lcd_wstrb),
+  .picos0_rdata(lcd_rdata)
+  );
+
  PicoMem_SPI_Flash u_PicoMem_SPI_Flash_18 (
-  .clk    (clk_p),
+  .clk    (cpu_clk),
   .resetn (sys_resetn),
 
   .flash_csb  (flash_csb),
@@ -267,7 +328,7 @@ picorv32 #(
 
  PicoMem_BOOT_SRAM_8KB u_boot_sram (
   .resetn(sys_resetn),
-  .clk(clk_p),
+  .clk(cpu_clk),
   .mem_s_valid(brom_valid),
   .mem_s_ready(brom_ready),
   .mem_s_addr(brom_addr),
@@ -279,7 +340,7 @@ picorv32 #(
  PicoMem_GPIO u_PicoMem_GPIO (
   .resetn(sys_resetn),
   .io(gpio),
-  .clk(clk_p),
+  .clk(cpu_clk),
   .busin_valid(gpio_valid),
   .busin_ready(gpio_ready),
   .busin_addr(gpio_addr),
@@ -290,7 +351,7 @@ picorv32 #(
 
  PicoMem_UART u_PicoMem_UART (
   .resetn(sys_resetn),
-  .clk(clk_p),
+  .clk(cpu_clk),
   .mem_s_valid(uart_valid),
   .mem_s_ready(uart_ready),
   .mem_s_addr(uart_addr),
@@ -301,32 +362,24 @@ picorv32 #(
   .ser_tx(ser_tx)
  );
 
+ lcd114 u_Pico_LCD114(
+     .clk(cpu_clk),
+     .resetn(sys_resetn),
+
+     .lcd_valid(lcd_valid),
+     .lcd_ready(lcd_ready),
+     .addr(lcd_addr),
+     .wdata(lcd_wdata),
+     .wstrb(lcd_wstrb),
+     .rdata(),
+
+     .lcd_resetn(lcd_resetn),
+     .lcd_clk(lcd_clk),
+     .lcd_cs(lcd_cs),
+     .lcd_rs(lcd_rs),
+     .lcd_data(lcd_data)
+ );
 
 assign wbp_ready = 1'b1;
-
-`ifdef __HDMI_ENABLED__
-wire svo_term_valid;
-assign svo_term_valid = (uart_valid && uart_ready) & (~uart_addr[2]) & uart_wstrb[0];
-
-svo_hdmi_top u_hdmi (
-	.clk(clk_p),
-	.resetn(sys_resetn),
-
-	// video clocks
-	.clk_pixel(clk_p),
-	.clk_5x_pixel(clk_p5),
-	.locked(pll_lock),
-
-	.term_in_tvalid( svo_term_valid ),
-	.term_out_tready(),
-	.term_in_tdata( uart_wdata[7:0] ),
-
-	// output signals
-	.tmds_clk_n(tmds_clk_n),
-	.tmds_clk_p(tmds_clk_p),
-	.tmds_d_n(tmds_d_n),
-	.tmds_d_p(tmds_d_p)
-);
-`endif
 
 endmodule
