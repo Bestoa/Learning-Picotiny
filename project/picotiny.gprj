@@ -20,6 +20,8 @@
         <File path="../hw/simpleuart.v" type="file.verilog" enable="1"/>
         <File path="../hw/spimemio_puya.v" type="file.verilog" enable="1"/>
         <File path="../hw/lcd114.v" type="file.verilog" enable="1"/>
+        <File path="../hw/psram_controller.v" type="file.verilog" enable="1"/>
+        <File path="../hw/psram_picomem_v2.v" type="file.verilog" enable="1"/>
         <File path="picotiny.cst" type="file.cst" enable="1"/>
         <File path="picotiny.sdc" type="file.sdc" enable="1"/>
     </FileList>
