@@ -137,14 +137,21 @@ Reset_Sync u_Reset_Sync (
     .clk(sysclk)
 );
 
+reg [31:0] irq = 0;
+
 picorv32 #(
     .PROGADDR_RESET(32'h8000_0000),
+    .PROGADDR_IRQ(32'h0000_0400),
     .ENABLE_FAST_MUL(1),
-    .ENABLE_DIV(1)
+    .ENABLE_DIV(1),
+    .ENABLE_TRACE(1),
+    .ENABLE_IRQ(1)
 ) u_picorv32 (
     .clk(sysclk),
     .resetn(sys_resetn & psram_init_ready), // wait for PSRAM to be ready
     .trap(),
+    .trace_valid(trace_valid),
+    .trace_data(trace_data),
     .mem_valid(mem_valid),
     .mem_instr(),
     .mem_ready(mem_ready),
@@ -152,7 +159,7 @@ picorv32 #(
     .mem_wdata(mem_wdata),
     .mem_wstrb(mem_wstrb),
     .mem_rdata(mem_rdata),
-    .irq(32'b0),
+    .irq(irq),
     .eoi()
 );
 
