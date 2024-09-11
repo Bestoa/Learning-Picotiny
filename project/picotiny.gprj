@@ -11,8 +11,6 @@
         <File path="../gowin_ip/bootram_2kx8_3/bootram_2kx8_3.v" type="file.verilog" enable="1"/>
         <File path="../gowin_ip/gowin_clkdiv/gowin_clkdiv.v" type="file.verilog" enable="1"/>
         <File path="../gowin_ip/gowin_rpll/gowin_rpll.v" type="file.verilog" enable="1"/>
-        <File path="../gowin_ip/sram_2kx8/sram_2kx8.v" type="file.verilog" enable="1"/>
-        <File path="../gowin_ip/sram_8kx8/sram_8kx8.v" type="file.verilog" enable="1"/>
         <File path="../hw/picomemory.v" type="file.verilog" enable="1"/>
         <File path="../hw/picoperipheral.v" type="file.verilog" enable="1"/>
         <File path="../hw/picorv32.v" type="file.verilog" enable="1"/>

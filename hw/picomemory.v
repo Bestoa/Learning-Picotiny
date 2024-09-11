@@ -251,59 +251,43 @@ wire mem_ce;
 
 assign mem_ce = mem_s_valid & ~mem_s_ready;
 
-`ifdef __GOWIN__
-sram_8kx8 u_sram_3 (
-`else
 PicoMem_8kx8_SRAM_behav u_sram_3 (
-`endif
 	.clk(clk),
 	.reset(~resetn),
 	.ce(mem_ce),
 	.oce(1'b1),
 	.wre(mem_s_wstrb[3]),
-	.ad(mem_s_addr[15:2]),
+	.ad(mem_s_addr[14:2]),
 	.din(mem_s_wdata[31:24]),
 	.dout(mem_s_rdata[31:24])
 );
-`ifdef __GOWIN__
-sram_8kx8 u_sram_2 (
-`else
 PicoMem_8kx8_SRAM_behav u_sram_2 (
-`endif
 	.clk(clk),
 	.reset(~resetn),
 	.ce(mem_ce),
 	.oce(1'b1),
 	.wre(mem_s_wstrb[2]),
-	.ad(mem_s_addr[15:2]),
+	.ad(mem_s_addr[14:2]),
 	.din(mem_s_wdata[23:16]),
 	.dout(mem_s_rdata[23:16])
 );
-`ifdef __GOWIN__
-sram_8kx8 u_sram_1 (
-`else
 PicoMem_8kx8_SRAM_behav u_sram_1 (
-`endif
 	.clk(clk),
 	.reset(~resetn),
 	.ce(mem_ce),
 	.oce(1'b1),
 	.wre(mem_s_wstrb[1]),
-	.ad(mem_s_addr[15:2]),
+	.ad(mem_s_addr[14:2]),
 	.din(mem_s_wdata[15: 8]),
 	.dout(mem_s_rdata[15: 8])
 );
-`ifdef __GOWIN__
-sram_8kx8 u_sram_0 (
-`else
 PicoMem_8kx8_SRAM_behav u_sram_0 (
-`endif
 	.clk(clk),
 	.reset(~resetn),
 	.ce(mem_ce),
 	.oce(1'b1),
 	.wre(mem_s_wstrb[0]),
-	.ad(mem_s_addr[15:2]),
+	.ad(mem_s_addr[14:2]),
 	.din(mem_s_wdata[ 7: 0]),
 	.dout(mem_s_rdata[ 7: 0])
 );
