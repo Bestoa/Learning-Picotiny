@@ -127,7 +127,7 @@ typedef struct {
 #define UART_BAUD       115200
 
 
-#define BROM_VERSION "0.0.3.51"
+#define BROM_VERSION "0.0.4.51"
 
 void print(const char *p)
 {
@@ -153,8 +153,8 @@ int main()
 
     if (waitcnt == FW_WAIT_MAXCNT) {
         void (*flash_vec)(void) = (void (*)(void))(0x00000000);
-        print("\r\n BROM VERSION " BROM_VERSION "\n");
-        print("\r\n Boot from flash\n");
+        print("\r\nBROM VERSION " BROM_VERSION "\r\n");
+        print("Boot from flash\r\n");
         flash_vec();
     }
 

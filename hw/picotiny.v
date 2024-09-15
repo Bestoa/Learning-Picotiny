@@ -138,7 +138,9 @@ Reset_Sync u_Reset_Sync (
 );
 
 picorv32 #(
-    .PROGADDR_RESET(32'h8000_0000)
+    .PROGADDR_RESET(32'h8000_0000),
+    .ENABLE_FAST_MUL(1),
+    .ENABLE_DIV(1)
 ) u_picorv32 (
     .clk(sysclk),
     .resetn(sys_resetn & psram_init_ready), // wait for PSRAM to be ready

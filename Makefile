@@ -1,7 +1,5 @@
 
-PYTHON_NAME ?= python
-RISCV_NAME 	?= riscv-none-elf
-RISCV_PATH 	?= /home/besto/Work/xpack-riscv-none-elf-gcc-13.3.0-1/
+include Makefile.inc
 MAKE		?= make
 
 FW_FILE 	 = fw/fw-flash/build/fw-flash.v
