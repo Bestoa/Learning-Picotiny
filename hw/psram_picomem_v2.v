@@ -106,6 +106,7 @@ always @(posedge clk) begin
             WRITE : begin
                 state <= WRITE_W;
                 read <= 0;
+                ready <= 1;
                 if (wstrb[1:0] != 2'b00)
                     write[0] <= 1;
                 if (wstrb[3:2] != 2'b00)
@@ -130,7 +131,6 @@ always @(posedge clk) begin
             WRITE_W : begin
                 if (write == 2'b0 && busy == 2'b0) begin
                     state <= IDLE;
-                    ready <= 1;
                 end else begin
                     state <= WRITE_W;
                 end

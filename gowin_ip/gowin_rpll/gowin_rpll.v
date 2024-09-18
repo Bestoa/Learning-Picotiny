@@ -42,11 +42,11 @@ rPLL rpll_inst (
 
 defparam rpll_inst.FCLKIN = "27";
 defparam rpll_inst.DYN_IDIV_SEL = "false";
-defparam rpll_inst.IDIV_SEL = 8;
+defparam rpll_inst.IDIV_SEL = 7;
 defparam rpll_inst.DYN_FBDIV_SEL = "false";
-defparam rpll_inst.FBDIV_SEL = 16;
+defparam rpll_inst.FBDIV_SEL = 11;
 defparam rpll_inst.DYN_ODIV_SEL = "false";
-defparam rpll_inst.ODIV_SEL = 8;
+defparam rpll_inst.ODIV_SEL = 16;
 defparam rpll_inst.PSDA_SEL = "0100";
 defparam rpll_inst.DYN_DA_EN = "false";
 defparam rpll_inst.DUTYDA_SEL = "1000";

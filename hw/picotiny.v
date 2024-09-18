@@ -175,7 +175,7 @@ PicoMem_SRAM_32KB u_PicoMem_SRAM_32KB_7 (
 );
 
 PicoMem_PSRAM_V2  #(
-    .FREQ(51_000_000)
+    .FREQ(40_500_000)
 ) psram (
     .clk(sysclk),
     .clk_p(sysclk_p),

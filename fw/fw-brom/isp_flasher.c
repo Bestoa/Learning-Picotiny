@@ -119,15 +119,11 @@ typedef struct {
 
 // 0.8 us per loop in 24MHz
 #define FW_WAIT_MAXCNT  ((int)(400000 / 0.8))
-// if enable HDMI, CLK_FREQ should be 25.175MHz
-//#define CLK_FREQ        25175000
-// if we don't use pll, CLK_FREQ should be 27MHz
-//#define CLK_FREQ        27000000
-#define CLK_FREQ        51000000
+#define CLK_FREQ        40500000
 #define UART_BAUD       115200
 
 
-#define BROM_VERSION "0.0.4.51"
+#define BROM_VERSION "0.0.4-40.5"
 
 void print(const char *p)
 {
@@ -153,7 +149,7 @@ int main()
 
     if (waitcnt == FW_WAIT_MAXCNT) {
         void (*flash_vec)(void) = (void (*)(void))(0x00000000);
-        print("\r\nBROM VERSION " BROM_VERSION "\r\n");
+        print("\r\nBROM VERSION " BROM_VERSION " rv32im\r\n");
         print("Boot from flash\r\n");
         flash_vec();
     }

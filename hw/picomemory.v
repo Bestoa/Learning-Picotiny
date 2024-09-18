@@ -162,11 +162,7 @@ wire mem_ce;
 
 assign mem_ce = mem_s_valid & ~mem_s_ready;
 
-`ifdef __GOWIN__
-sram_2kx8 u_sram_3 (
-`else
 PicoMem_2kx8_SRAM_behav u_sram_3 (
-`endif
 	.clk(clk),
 	.reset(~resetn),
 	.ce(mem_ce),
@@ -176,11 +172,7 @@ PicoMem_2kx8_SRAM_behav u_sram_3 (
 	.din(mem_s_wdata[31:24]),
 	.dout(mem_s_rdata[31:24])
 );
-`ifdef __GOWIN__
-sram_2kx8 u_sram_2 (
-`else
 PicoMem_2kx8_SRAM_behav u_sram_2 (
-`endif
 	.clk(clk),
 	.reset(~resetn),
 	.ce(mem_ce),
@@ -190,11 +182,7 @@ PicoMem_2kx8_SRAM_behav u_sram_2 (
 	.din(mem_s_wdata[23:16]),
 	.dout(mem_s_rdata[23:16])
 );
-`ifdef __GOWIN__
-sram_2kx8 u_sram_1 (
-`else
 PicoMem_2kx8_SRAM_behav u_sram_1 (
-`endif
 	.clk(clk),
 	.reset(~resetn),
 	.ce(mem_ce),
@@ -204,11 +192,7 @@ PicoMem_2kx8_SRAM_behav u_sram_1 (
 	.din(mem_s_wdata[15: 8]),
 	.dout(mem_s_rdata[15: 8])
 );
-`ifdef __GOWIN__
-sram_2kx8 u_sram_0 (
-`else
 PicoMem_2kx8_SRAM_behav u_sram_0 (
-`endif
 	.clk(clk),
 	.reset(~resetn),
 	.ce(mem_ce),
