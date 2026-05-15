@@ -1,0 +1,14 @@
+[General]
+file=gowin_rom
+ipc_version=4
+module=Gowin_ROM
+target_device=gw5a25a-012
+type=rom
+version=1.0
+
+[Config]
+DEPTH=2048
+LANG=0
+READ=0
+RESET_MODE=true
+WIDTH=8

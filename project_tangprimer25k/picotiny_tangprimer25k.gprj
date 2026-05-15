@@ -1,0 +1,20 @@
+<?xml version="1" encoding="UTF-8"?>
+<!DOCTYPE gowin-fpga-project>
+<Project>
+    <Template>FPGA</Template>
+    <Version>5</Version>
+    <Device name="GW5A-25A" pn="GW5A-LV25MG121NES">gw5a25a-000</Device>
+    <FileList>
+        <File path="/home/besto/Work/Source/picotiny/hw/picomemory.v" type="file.verilog" enable="1"/>
+        <File path="/home/besto/Work/Source/picotiny/hw/picoperipheral.v" type="file.verilog" enable="1"/>
+        <File path="/home/besto/Work/Source/picotiny/hw/picorv32.v" type="file.verilog" enable="1"/>
+        <File path="/home/besto/Work/Source/picotiny/hw/simpleuart.v" type="file.verilog" enable="1"/>
+        <File path="src/bootram_2kx8_0/bootram_2kx8_0.v" type="file.verilog" enable="1"/>
+        <File path="src/bootram_2kx8_1/bootram_2kx8_1.v" type="file.verilog" enable="1"/>
+        <File path="src/bootram_2kx8_2/bootram_2kx8_2.v" type="file.verilog" enable="1"/>
+        <File path="src/bootram_2kx8_3/bootram_2kx8_3.v" type="file.verilog" enable="1"/>
+        <File path="src/picotiny_tangprimer25k.v" type="file.verilog" enable="1"/>
+        <File path="picotiny_tangprimer25k.cst" type="file.cst" enable="1"/>
+        <File path="picotiny_tangprimer25k.sdc" type="file.sdc" enable="1"/>
+    </FileList>
+</Project>

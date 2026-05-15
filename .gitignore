@@ -1,1 +1,6 @@
 build
+**/impl/
+**/*.gprj.user
+**/*.fs
+tags
+reset.sh
