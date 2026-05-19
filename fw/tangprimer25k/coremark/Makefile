@@ -1,15 +1,17 @@
-include ../../Makefile.inc
+include ../../../Makefile.inc
 PROJ_NAME=fw-coremark
 DEBUG=no
 BENCH=no
 MULDIV=yes
 COMPRESSED=no
 
-SRCS = 	$(wildcard coremark/*.c) 	\
-		$(wildcard *.S) 	\
-		coremark/barebones/core_portme.c		\
-		coremark/barebones/cvt.c		\
-		coremark/barebones/ee_printf.c
+COREMARK_DIR = ../../coremark
+
+SRCS = 	$(wildcard $(COREMARK_DIR)/*.c) 	\
+	core_portme.c				\
+	$(COREMARK_DIR)/barebones/cvt.c		\
+	ee_printf.c				\
+	$(wildcard *.S)
 
 LDSCRIPT = ./linker.ld
 
@@ -37,27 +39,28 @@ CFLAGS = -march=$(MARCH) \
 		  -MD -fstrict-volatile-bitfields \
 		  -ffreestanding \
 		  -Wl,-Bstatic,-T,$(LDSCRIPT),-Map,$(OBJDIR)/$(PROJ_NAME).map,--print-memory-usage \
-		  -Wl,--gc-sections
+		  -Wl,--gc-sections,--strip-debug
 
-CFLAGS += -Icoremark/barebones -Icoremark \
+CFLAGS += -I$(COREMARK_DIR)/barebones -I$(COREMARK_DIR) \
 		  -DITERATIONS=400 \
-		  -DCLOCKS_PER_SEC=51000000 \
+		  -DCLOCKS_PER_SEC=50000000 \
 		  -DPERFORMANCE_RUN=1 \
-		  -DHAS_FLOAT=0
+		  -DHAS_FLOAT=0 \
+		  -DMEM_METHOD=0
 
 ifeq ($(DEBUG),yes)
 	CFLAGS += -g3 -O0
 endif
 
 ifeq ($(DEBUG),no)
-	CFLAGS += -O3
+	CFLAGS += -g -O3
 endif
 
 ifeq ($(BENCH),yes)
 	CFLAGS += -fno-inline
 endif
 
-FLAGS_STR = "-O3 (Build by Besto)"
+FLAGS_STR = "-O3 (Tang Primer 25K)"
 CFLAGS +=  -DFLAGS_STR=\"$(FLAGS_STR)\"
 
 RISCV_CLIB=$(RISCV_PATH)/$(RISCV_NAME)/lib/$(MARCH)/$(MABI)/
@@ -79,7 +82,7 @@ SUBOBJ := $(addsuffix /*.o,$(SUBOBJ))
 
 export RISCV_CC CFLAGS OBJDIR
 
-all: $(SUBDIRS) $(OBJDIR)/$(PROJ_NAME).elf $(OBJDIR)/$(PROJ_NAME).hex $(OBJDIR)/$(PROJ_NAME).asm $(OBJDIR)/$(PROJ_NAME).v $(OBJDIR)/$(PROJ_NAME).bin $(OBJDIR)/$(PROJ_NAME)-boot.bin
+all: $(SUBDIRS) $(OBJDIR)/$(PROJ_NAME).elf $(OBJDIR)/$(PROJ_NAME).hex $(OBJDIR)/$(PROJ_NAME).asm $(OBJDIR)/$(PROJ_NAME).v $(OBJDIR)/$(PROJ_NAME).bin $(OBJDIR)/$(PROJ_NAME).hex32
 
 $(SUBDIRS): ECHO
 	make -C $@
@@ -96,12 +99,11 @@ $(OBJDIR)/%.elf: $(OBJS) | $(OBJDIR)
 %.bin: %.elf
 	$(RISCV_OBJCOPY) -O binary $^ $@
 
-%-boot.bin: %.bin
-	make -C ../fw-bootloader
-	cat ../fw-bootloader/build/fw-bootloader.bin $^ > $@
-
 %.v: %.elf
 	$(RISCV_OBJCOPY) -O verilog $^ $@
+
+%.hex32: %.bin
+	$(PYTHON_NAME) ../../../sw/bin2hex32.py $^ $@
 
 %.asm: %.elf
 	$(RISCV_OBJDUMP) -S -D -x $^ > $@
@@ -122,15 +124,8 @@ $(OBJDIR):
 	mkdir -p $@
 
 clean:
-	rm -f $(OBJDIR)/$(PROJ_NAME).elf
-	rm -f $(OBJDIR)/$(PROJ_NAME).hex
-	rm -f $(OBJDIR)/$(PROJ_NAME).map
-	rm -f $(OBJDIR)/$(PROJ_NAME).v
-	rm -f $(OBJDIR)/$(PROJ_NAME).asm
-	rm -f $(OBJDIR)/$(PROJ_NAME).bin
-	rm -f $(OBJDIR)/$(PROJ_NAME)-boot.bin
-	find $(OBJDIR) -type f -name '*.d' -print0 | xargs -0 -r rm
-	find $(OBJDIR) -type f -name '*.o' -print0 | xargs -0 -r rm
+	rm -rf $(OBJDIR)
+	find . -name '*.o' -not -path './.git/*' -delete
+	find . -name '*.d' -not -path './.git/*' -delete
 
 .SECONDARY: $(OBJS)
-

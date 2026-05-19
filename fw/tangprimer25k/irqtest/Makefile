@@ -1,18 +1,17 @@
-include ../../Makefile.inc
-PROJ_NAME=fw-tangprimer25k
+include ../../../Makefile.inc
+PROJ_NAME=fw-irqtest
 DEBUG=no
 BENCH=no
-COMPACT=yes
-MULDIV=no
+MULDIV=yes
 COMPRESSED=no
 
-SRCS =	$(wildcard *.c)       		\
+SRCS = 	$(wildcard *.c) 	\
 		$(wildcard *.S)
 
 LDSCRIPT = ./linker.ld
 
-VDUMPC_PATH ?= ../../sw/vdump8to32.py
-MEM_BASEADDR ?= 0x80000000
+RISCV_NAME 	?= riscv-none-elf
+RISCV_PATH 	?= /home/besto/Work/xpack-riscv-none-elf-gcc-13.3.0-1/
 
 MABI=ilp32
 MARCH := rv32i
@@ -23,19 +22,26 @@ ifeq ($(COMPRESSED),yes)
 	MARCH := $(MARCH)ac
 endif
 
-CFLAGS += -march=$(MARCH)  -mabi=$(MABI)  -ffunction-sections -fdata-sections
-LDFLAGS += -march=$(MARCH)  -mabi=$(MABI)  -Wl,--gc-sections
+CFLAGS = -march=$(MARCH) \
+		  -mabi=$(MABI)  \
+		  -ffunction-sections \
+		  -fdata-sections \
+		  -fno-stack-protector \
+		  -fno-zero-initialized-in-bss \
+		  -fno-builtin \
+		  -nostartfiles \
+		  -mstrict-align \
+		  -MD -fstrict-volatile-bitfields \
+		  -ffreestanding \
+		  -Wl,-Bstatic,-T,$(LDSCRIPT),-Map,$(OBJDIR)/$(PROJ_NAME).map,--print-memory-usage \
+		  -Wl,--gc-sections,--strip-debug
 
 ifeq ($(DEBUG),yes)
 	CFLAGS += -g3 -O0
 endif
 
 ifeq ($(DEBUG),no)
-	ifeq ($(COMPACT),yes)
-		CFLAGS += -g -O2
-	else
-		CFLAGS += -g -O3
-	endif
+	CFLAGS += -g -O3
 endif
 
 ifeq ($(BENCH),yes)
@@ -48,23 +54,20 @@ RISCV_OBJCOPY = $(RISCV_PATH)/bin/$(RISCV_NAME)-objcopy
 RISCV_OBJDUMP = $(RISCV_PATH)/bin/$(RISCV_NAME)-objdump
 RISCV_CC = $(RISCV_PATH)/bin/$(RISCV_NAME)-gcc
 
-CFLAGS +=  -MD -fstrict-volatile-bitfields
-LDFLAGS +=  -nostdlib -lgcc -mcmodel=medany -nostartfiles -ffreestanding -Wl,-Bstatic,-T,$(LDSCRIPT),-Map,$(OBJDIR)/$(PROJ_NAME).map,--print-memory-usage
 
 OBJDIR = build
 OBJS := $(SRCS)
 OBJS := $(OBJS:.c=.o)
 OBJS := $(OBJS:.cpp=.o)
 OBJS := $(OBJS:.S=.o)
-OBJS := $(OBJS:..=miaou)
 OBJS := $(addprefix $(OBJDIR)/,$(OBJS))
 
 SUBOBJ := $(addprefix $(OBJDIR)/,$(SUBDIRS))
 SUBOBJ := $(addsuffix /*.o,$(SUBOBJ))
 
-export RISCV_CC CFLAGS LDFLAGS OBJDIR
+export RISCV_CC CFLAGS OBJDIR
 
-all: $(SUBDIRS) $(OBJDIR)/$(PROJ_NAME).elf $(OBJDIR)/$(PROJ_NAME).hex $(OBJDIR)/$(PROJ_NAME).asm $(OBJDIR)/$(PROJ_NAME).v $(OBJDIR)/$(PROJ_NAME).vx4 $(OBJDIR)/$(PROJ_NAME).v32 $(OBJDIR)/$(PROJ_NAME).mif $(OBJDIR)/$(PROJ_NAME).mi $(OBJDIR)/$(PROJ_NAME).mix4
+all: $(SUBDIRS) $(OBJDIR)/$(PROJ_NAME).elf $(OBJDIR)/$(PROJ_NAME).hex $(OBJDIR)/$(PROJ_NAME).asm $(OBJDIR)/$(PROJ_NAME).v $(OBJDIR)/$(PROJ_NAME).bin $(OBJDIR)/$(PROJ_NAME).hex32
 
 $(SUBDIRS): ECHO
 	make -C $@
@@ -73,7 +76,7 @@ ECHO:
 	@echo $(SUBDIRS)
 
 $(OBJDIR)/%.elf: $(OBJS) | $(OBJDIR)
-	$(RISCV_CC) $(CFLAGS) -o $@ $^ $(SUBOBJ) $(LDFLAGS) $(LIBS)
+	$(RISCV_CC) $(CFLAGS) -o $@ $^ $(SUBOBJ) $(LIBS)
 
 %.hex: %.elf
 	$(RISCV_OBJCOPY) -O ihex $^ $@
@@ -84,23 +87,11 @@ $(OBJDIR)/%.elf: $(OBJS) | $(OBJDIR)
 %.v: %.elf
 	$(RISCV_OBJCOPY) -O verilog $^ $@
 
-%.vx4: %.v
-	$(PYTHON_NAME) $(VDUMPC_PATH) $^ $@ vx4 $(MEM_BASEADDR)
-
-%.v32: %.v
-	$(PYTHON_NAME) $(VDUMPC_PATH) $^ $@ v32 $(MEM_BASEADDR)
-
-%.mif: %.v
-	$(PYTHON_NAME) $(VDUMPC_PATH) $^ $@ mif $(MEM_BASEADDR)
-
-%.mi: %.v
-	$(PYTHON_NAME) $(VDUMPC_PATH) $^ $@ mi $(MEM_BASEADDR)
-
-%.mix4: %.v
-	$(PYTHON_NAME) $(VDUMPC_PATH) $^ $@ mix4 $(MEM_BASEADDR)
+%.hex32: %.bin
+	$(PYTHON_NAME) ../../../sw/bin2hex32.py $^ $@
 
 %.asm: %.elf
-	$(RISCV_OBJDUMP) -S -d $^ > $@
+	$(RISCV_OBJDUMP) -S -D -x $^ > $@
 
 $(OBJDIR)/%.o: %.c
 	mkdir -p $(dir $@)
@@ -123,12 +114,10 @@ clean:
 	rm -f $(OBJDIR)/$(PROJ_NAME).map
 	rm -f $(OBJDIR)/$(PROJ_NAME).v
 	rm -f $(OBJDIR)/$(PROJ_NAME).asm
-	rm -f $(OBJDIR)/$(PROJ_NAME).vx*
-	rm -f $(OBJDIR)/$(PROJ_NAME).v32
-	rm -f $(OBJDIR)/$(PROJ_NAME).mif
-	rm -f $(OBJDIR)/$(PROJ_NAME).mi
-	rm -f $(OBJDIR)/$(PROJ_NAME)_*.mi
+	rm -f $(OBJDIR)/$(PROJ_NAME).bin
+	rm -f $(OBJDIR)/$(PROJ_NAME).hex32
 	find $(OBJDIR) -type f -name '*.d' -print0 | xargs -0 -r rm
 	find $(OBJDIR) -type f -name '*.o' -print0 | xargs -0 -r rm
 
 .SECONDARY: $(OBJS)
+

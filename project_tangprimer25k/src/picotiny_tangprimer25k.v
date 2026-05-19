@@ -29,13 +29,6 @@ wire [31:0] mem_wdata;
 wire [3:0] mem_wstrb;
 wire [31:0] mem_rdata;
 
-wire sram_valid;
-wire sram_ready;
-wire [31:0] sram_addr;
-wire [31:0] sram_wdata;
-wire [3:0] sram_wstrb;
-wire [31:0] sram_rdata;
-
 wire picop_valid;
 wire picop_ready;
 wire [31:0] picop_addr;
@@ -81,6 +74,7 @@ wire [31:0] uart_rdata;
 reg [31:0] irq = 0;
 
 wire unused_main_s0_valid;
+wire unused_main_s1_valid;
 wire unused_picop_s1_valid;
 wire unused_picop_s2_valid;
 wire unused_picop_s3_valid;
@@ -88,7 +82,7 @@ wire unused_picop0_s1_valid;
 
 picorv32 #(
     .PROGADDR_RESET(32'h8000_0000),
-    .PROGADDR_IRQ(32'h0000_0400),
+    .PROGADDR_IRQ(32'h8000_0400),
     .ENABLE_FAST_MUL(1),
     .ENABLE_DIV(1),
     .ENABLE_TRACE(1),
@@ -110,19 +104,8 @@ picorv32 #(
     .eoi()
 );
 
-PicoMem_SRAM_64KB u_PicoMem_SRAM_64KB (
-    .resetn(sys_resetn),
-    .clk(sysclk),
-    .mem_s_valid(sram_valid),
-    .mem_s_ready(sram_ready),
-    .mem_s_addr(sram_addr),
-    .mem_s_wdata(sram_wdata),
-    .mem_s_wstrb(sram_wstrb),
-    .mem_s_rdata(sram_rdata)
-);
-
 // S0 0x0000_0000 -> unused (no SPI Flash XIP on bare 25K)
-// S1 0x4000_0000 -> SRAM
+// S1 0x4000_0000 -> unused (SRAM merged into BROM)
 // S2 0x8000_0000 -> PicoPeriph
 // S3 0xC000_0000 -> Wishbone
 PicoMem_Mux_1_4 u_PicoMem_Mux_1_4_8 (
@@ -140,12 +123,12 @@ PicoMem_Mux_1_4 u_PicoMem_Mux_1_4_8 (
     .picos0_wstrb(),
     .picos0_rdata(32'h0000_0000),
 
-    .picos1_valid(sram_valid),
-    .picos1_ready(sram_ready),
-    .picos1_addr(sram_addr),
-    .picos1_wdata(sram_wdata),
-    .picos1_wstrb(sram_wstrb),
-    .picos1_rdata(sram_rdata),
+    .picos1_valid(unused_main_s1_valid),
+    .picos1_ready(1'b1),
+    .picos1_addr(),
+    .picos1_wdata(),
+    .picos1_wstrb(),
+    .picos1_rdata(32'h0000_0000),
 
     .picos2_valid(picop_valid),
     .picos2_ready(picop_ready),
@@ -258,7 +241,8 @@ PicoMem_Mux_1_4_slow #(
     .picos3_rdata(uart_rdata)
 );
 
-PicoMem_BOOT_SRAM_8KB u_boot_sram (
+// Unified 64KB BROM (code + data + bss), $readmemh initialized
+PicoMem_SRAM #(.ADDR_WIDTH(14), .INIT_FILE("fw-tangprimer25k.hex")) u_boot_sram (
     .resetn(sys_resetn),
     .clk(sysclk),
     .mem_s_valid(brom_valid),

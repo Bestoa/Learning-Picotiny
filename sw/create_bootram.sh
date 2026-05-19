@@ -1,7 +1,7 @@
 #!/bin/bash
 # Usage: create_bootram.sh [PROJECT_DIR] [FW_NAME]
 #   PROJECT_DIR: target project directory (default: .)
-#   FW_NAME:     firmware project name under fw/ (default: fw-brom)
+#   FW_NAME:     firmware project name under fw/ (default: tangnano9k/brom)
 #
 # Examples:
 #   ./sw/create_bootram.sh                           # 9K default
@@ -9,7 +9,7 @@
 #   ./sw/create_bootram.sh project_tangprimer25k fw-tangprimer25k
 
 PROJECT_DIR="${1:-.}"
-FW_NAME="${2:-fw-brom}"
+FW_NAME="${2:-tangnano9k/brom}"
 FW_DIR="fw/${FW_NAME}"
 IP_DIR="${PROJECT_DIR}/gowin_ip"
 

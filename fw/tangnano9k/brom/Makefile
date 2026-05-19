@@ -1,4 +1,4 @@
-include ../../Makefile.inc
+include ../../../Makefile.inc
 PROJ_NAME=fw-brom
 DEBUG=no
 BENCH=no
@@ -11,7 +11,7 @@ SRCS = 	$(wildcard *.c)       		\
 
 LDSCRIPT = ./linker_brom.ld
 
-VDUMPC_PATH ?= ../../sw/vdump8to32.py
+VDUMPC_PATH ?= ../../../sw/vdump8to32.py
 MEM_BASEADDR ?= 0x80000000
 
 MABI=ilp32

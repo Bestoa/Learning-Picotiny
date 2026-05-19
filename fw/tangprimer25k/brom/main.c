@@ -26,7 +26,7 @@ int main(void)
     uart_puts("  PicoTiny on Tang Primer 25K  \r\n");
     uart_puts("================================\r\n");
     uart_puts("Hello World from BROM!\r\n");
-    uart_puts("CPU running at 50MHz\r\n");
+    uart_puts("CPU running at 27MHz\r\n");
     uart_puts("SRAM: 64KB @ 0x4000_0000\r\n");
     uart_puts("\r\n");
 

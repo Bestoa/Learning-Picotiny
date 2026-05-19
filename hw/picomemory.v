@@ -2,6 +2,61 @@
 
 `define __GOWIN__
 
+// Unified parameterized SRAM module for 25K (and future boards).
+// 9K continues to use the legacy PicoMem_BOOT_SRAM_8KB / PicoMem_SRAM_* modules.
+module PicoMem_SRAM #(
+    parameter ADDR_WIDTH = 11,
+    parameter INIT_FILE = ""
+) (
+    input clk,
+    input resetn,
+    input mem_s_valid,
+    input [31:0] mem_s_addr,
+    input [31:0] mem_s_wdata,
+    input [3:0] mem_s_wstrb,
+    output mem_s_ready,
+    output reg [31:0] mem_s_rdata
+);
+
+    localparam DEPTH = 1 << ADDR_WIDTH;
+    reg mem_ready;
+    wire mem_ce;
+
+    assign mem_ce = mem_s_valid & ~mem_s_ready;
+
+    reg [31:0] mem [0:DEPTH-1];
+
+    always @(posedge clk) begin
+        if (mem_ce) begin
+            if (|mem_s_wstrb) begin
+                if (mem_s_wstrb[0]) mem[mem_s_addr[ADDR_WIDTH+1:2]][ 7: 0] <= mem_s_wdata[ 7: 0];
+                if (mem_s_wstrb[1]) mem[mem_s_addr[ADDR_WIDTH+1:2]][15: 8] <= mem_s_wdata[15: 8];
+                if (mem_s_wstrb[2]) mem[mem_s_addr[ADDR_WIDTH+1:2]][23:16] <= mem_s_wdata[23:16];
+                if (mem_s_wstrb[3]) mem[mem_s_addr[ADDR_WIDTH+1:2]][31:24] <= mem_s_wdata[31:24];
+            end else begin
+                mem_s_rdata <= mem[mem_s_addr[ADDR_WIDTH+1:2]];
+            end
+        end
+    end
+
+    always @(posedge clk) begin
+        if (~resetn) begin
+            mem_ready <= 1'b0;
+        end else begin
+            if (mem_ready) begin
+                mem_ready <= 1'b0;
+            end else if (mem_s_valid) begin
+                mem_ready <= 1'b1;
+            end
+        end
+    end
+
+    assign mem_s_ready = mem_ready;
+
+    initial if (INIT_FILE != "") $readmemh(INIT_FILE, mem);
+
+endmodule
+
 module PicoMem_2kx8_SRAM_behav (
 	input clk,
 	input reset,

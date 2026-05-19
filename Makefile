@@ -22,14 +22,14 @@ all: brom flash
 $(FW_FILE): flash
 
 brom:
-	$(MAKE) -C fw/fw-brom
+	$(MAKE) -C fw/tangnano9k/brom
 
 flash:
-	$(MAKE) -C fw/fw-flash
+	$(MAKE) -C fw/tangnano9k/flash
 
 clean:
-	$(MAKE) -C fw/fw-brom clean
-	$(MAKE) -C fw/fw-flash clean
+	$(MAKE) -C fw/tangnano9k/brom clean
+	$(MAKE) -C fw/tangnano9k/flash clean
 
 program: $(FW_FILE)
 	$(PYTHON_NAME) sw/pico-programmer.py $(FW_FILE) $(COMx)
@@ -50,20 +50,24 @@ GOWIN_PROJ	 = project_tangprimer25k/picotiny_tangprimer25k.gprj
 all: brom25k
 
 brom25k:
-	$(MAKE) -C fw/fw-tangprimer25k
+	$(MAKE) -C fw/tangprimer25k/brom
 
-# Copy firmware byte-lane hex files to bootram wrapper directories.
+# Copy firmware 32-bit hex file to project directory for $readmemh init.
 # Gowin synthesizer will pick up $readmemh initialization.
-# Usage: make bootram TARGET=tangprimer25k
-bootram: brom25k
-	cp fw/fw-tangprimer25k/build/fw-tangprimer25k.vx0 project_tangprimer25k/src/bootram_2kx8_0/
-	cp fw/fw-tangprimer25k/build/fw-tangprimer25k.vx1 project_tangprimer25k/src/bootram_2kx8_1/
-	cp fw/fw-tangprimer25k/build/fw-tangprimer25k.vx2 project_tangprimer25k/src/bootram_2kx8_2/
-	cp fw/fw-tangprimer25k/build/fw-tangprimer25k.vx3 project_tangprimer25k/src/bootram_2kx8_3/
-	@echo "Bootram init files copied. Re-synthesize in Gowin IDE."
+# Usage: make bootram TARGET=tangprimer25k [FW=brom|irqtest|coremark]
+FW ?= brom
+
+bootram:
+	$(MAKE) -C fw/tangprimer25k/$(FW)
+ifeq ($(FW),brom)
+	cp fw/tangprimer25k/$(FW)/build/fw-tangprimer25k.hex32 project_tangprimer25k/src/fw-tangprimer25k.hex
+else
+	cp fw/tangprimer25k/$(FW)/build/fw-$(FW).hex32 project_tangprimer25k/src/fw-tangprimer25k.hex
+endif
+	@echo "Bootram init file copied. Re-synthesize in Gowin IDE."
 
 clean:
-	$(MAKE) -C fw/fw-tangprimer25k clean
+	$(MAKE) -C fw/tangprimer25k/brom clean
 
 # No 'program' target for 25K -- firmware is embedded in bitstream.
 
